@@ -18,7 +18,7 @@ load_dotenv()
 api_key = os.getenv("cmc_api_key")
 
 
-table = 'CMC'
+table = 'apis_cmc'
 conn_string = os.getenv('DATABASE_URL')
 db = create_engine(conn_string)
 conn = db.raw_connection()
@@ -57,6 +57,7 @@ class Command(BaseCommand):
             for d in data:
                 id = str(uuid4())
                 inserted_at = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+                last_updated = d['quote']['USD']['last_updated']
                 name = d['name']
                 symbol = d['symbol']
                 price = d['quote']['USD']['price']
@@ -74,6 +75,7 @@ class Command(BaseCommand):
 
                 d = {"id": id,
                 "inserted_at": inserted_at,
+                "last_updated": last_updated,
                 "name": name, 
                 "symbol": symbol, 
                 "price": price, 
@@ -94,7 +96,6 @@ class Command(BaseCommand):
             return df
         today_listings = pull_latest_listings(url, parameters, headers, session)
         df = extract_and_push_to_df(today_listings)
-
         # def insert_to_db(self, df):
         #     self.CMC.objects.create(df)
         # insert_to_db(self, df)
@@ -105,7 +106,7 @@ class Command(BaseCommand):
             results = cur.fetchall()
             print(results)
                     
-        def execute_values(self, conn, engine, df, table): #####ADD UNIQUE TOGETHER THEN GET RID OF MODEL IN MODELS.PY
+        def execute_values(self, conn, engine, df, table): 
             # print(df)
             sql1 = df.to_sql(table, engine, if_exists='append', index=False)
             conn.autocommit = True

@@ -1,9 +1,11 @@
 from datetime import datetime
 from django.db import models
+from uuid import uuid4
 
 class CMC(models.Model):
-   id = models.IntegerField(primary_key=True)
+   id = models.UUIDField(primary_key = True,default = uuid4, editable = False)
    inserted_at = models.DateTimeField(default=datetime.utcnow)
+   last_updated = models.DateField(default=datetime.utcnow)
    name = models.CharField(max_length=30, default="")
    symbol = models.CharField(max_length=30, default="")
    price = models.FloatField(null=True, default=0.0)
