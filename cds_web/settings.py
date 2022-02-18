@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 from lib2to3.pytree import Base
 import environ
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 env = environ.Env(
     # set casting, default value
@@ -32,9 +36,9 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = int(os.environ.get("DEBUG", default=0))
+PRODUCTION = int(os.environ.get("PRODUCTION", default=1))
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 
 # Application definition
@@ -47,9 +51,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apis.apps.ApisConfig',
+    'users',
+    'django_celery_beat',
     'rest_framework',
     'environ'
 ]
+
+#Celery, Celery Beat and Redis settings
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BACKEND", "redis://redis:6379")
+if CELERY_RESULT_BACKEND == 'django-db':
+    INSTALLED_APPS += ['django_celery_results',]
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'United States/Mountain'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,4 +144,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'media')
+]
+ 
+STATIC_URL = "/static/"
+STATIC_ROOT = f"{BASE_DIR}/staticfiles"
+ 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = f"{BASE_DIR}/mediafiles"
+
+LOGIN_REDIRECT_URL = 'users:account'
+LOGIN_URL = 'users:sign-in'
+LOGOUT_REDIRECT_URL ='users:sign-in'
+

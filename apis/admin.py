@@ -4,3 +4,5 @@ from django.contrib import admin
 from apis.models import CMC
 admin.site.register(CMC)
 # Register your models here.
+ 
+

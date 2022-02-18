@@ -1,11 +1,18 @@
-from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
-
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', "cds_web.settings")
-
-app = Celery('cds_web')
-app.config_from_object("django.conf:settings", namespace='CELERY')
-
+from datetime import timedelta
+ 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'did_django_schedule_jobs_v2.settings')
+app = Celery('did_django_schedule_jobs_v2')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+ 
+app.conf.timezone = 'Mountain'
+ 
+app.conf.beat_schedule = {
+    "every_thirty_seconds": {
+        "task": "users.tasks.thirty_second_func",
+        "schedule": timedelta(seconds=30),
+    },
+}
+ 
 app.autodiscover_tasks()
